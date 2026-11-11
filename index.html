@@ -1,0 +1,660 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PlayHubo Games</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #ffffff;
+    color: #202124;
+}
+
+header {
+    padding: 28px 5%;
+    border-bottom: 1px solid #eeeeee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+    color: #202124;
+}
+
+.logo span {
+    color: #4778ed;
+}
+
+.header-info {
+    color: #777;
+    font-size: 13px;
+}
+
+.container {
+    max-width: 1450px;
+    margin: auto;
+    padding: 30px 5%;
+}
+
+.top-section {
+    margin-bottom: 25px;
+}
+
+.top-section h1 {
+    font-size: 29px;
+    margin-bottom: 8px;
+}
+
+.top-section p {
+    color: #777;
+    font-size: 14px;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.search {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 16px;
+    border: 1px solid #e2e2e2;
+    border-radius: 9px;
+    font-size: 14px;
+    outline: none;
+}
+
+.search:focus {
+    border-color: #4778ed;
+}
+
+.category {
+    min-width: 160px;
+    padding: 14px;
+    border: 1px solid #e2e2e2;
+    border-radius: 9px;
+    background: white;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.status {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: 20px;
+}
+
+.game-card {
+    cursor: pointer;
+    min-width: 0;
+    transition: transform 0.18s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-4px);
+}
+
+.game-thumbnail {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    border-radius: 10px;
+    background: #f1f1f1;
+}
+
+.game-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 10px;
+    line-height: 1.4;
+}
+
+.game-category {
+    font-size: 12px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.empty {
+    padding: 50px 15px;
+    text-align: center;
+    color: #888;
+    grid-column: 1 / -1;
+}
+
+.loading {
+    padding: 60px 15px;
+    text-align: center;
+    color: #777;
+    grid-column: 1 / -1;
+}
+
+.load-more {
+    display: block;
+    margin: 35px auto;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 8px;
+    background: #4778ed;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.load-more:hover {
+    background: #3565d5;
+}
+
+.load-more:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+/* GAME PLAYER */
+
+.player-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.player-overlay.active {
+    display: flex;
+}
+
+.player-window {
+    width: min(1100px, 100%);
+    height: min(750px, 90vh);
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.player-header {
+    height: 52px;
+    min-height: 52px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+}
+
+.player-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #222;
+}
+
+.player-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.player-buttons button {
+    border: none;
+    background: #eeeeee;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.player-buttons button:hover {
+    background: #dddddd;
+}
+
+#gameFrame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #111;
+    flex: 1;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 22px 4%;
+    }
+
+    .games-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .top-section h1 {
+        font-size: 24px;
+    }
+
+    .player-overlay {
+        padding: 0;
+    }
+
+    .player-window {
+        height: 100%;
+        border-radius: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">Play<span>Hubo</span></div>
+    <div class="header-info">HTML5 Games</div>
+</header>
+
+<main class="container">
+
+    <section class="top-section">
+        <h1>Explore Games</h1>
+        <p>Browse and play games directly in your browser.</p>
+    </section>
+
+    <div class="controls">
+        <input
+            class="search"
+            id="searchInput"
+            type="search"
+            placeholder="Search games..."
+        >
+
+        <select class="category" id="categorySelect">
+            <option value="all">All Categories</option>
+        </select>
+    </div>
+
+    <div class="status" id="status">
+        Loading games...
+    </div>
+
+    <div class="games-grid" id="gamesGrid">
+        <div class="loading">Loading PlayHubo games...</div>
+    </div>
+
+    <button class="load-more" id="loadMore" hidden>
+        Load More
+    </button>
+
+</main>
+
+<!-- GAME PLAYER -->
+
+<div class="player-overlay" id="playerOverlay">
+    <div class="player-window">
+
+        <div class="player-header">
+            <div class="player-title" id="playerTitle">Game</div>
+
+            <div class="player-buttons">
+                <button id="fullscreenButton">Fullscreen</button>
+                <button id="newTabButton">New Tab</button>
+                <button id="closeButton">Close ✕</button>
+            </div>
+        </div>
+
+        <iframe
+            id="gameFrame"
+            allow="autoplay; fullscreen; gamepad"
+            allowfullscreen
+            loading="eager"
+        ></iframe>
+
+    </div>
+</div>
+
+<script>
+const API_URL = "https://playhubo.com/api/gamepix/games";
+const GAME_LIMIT = 50;
+
+let games = [];
+let offset = 0;
+let loading = false;
+let finished = false;
+let currentGameUrl = "";
+
+const grid = document.getElementById("gamesGrid");
+const statusText = document.getElementById("status");
+const searchInput = document.getElementById("searchInput");
+const categorySelect = document.getElementById("categorySelect");
+const loadMoreButton = document.getElementById("loadMore");
+
+
+// ========================================
+// LOAD GAMES
+// ========================================
+
+async function loadGames() {
+    if (loading || finished) return;
+
+    loading = true;
+    loadMoreButton.disabled = true;
+    loadMoreButton.textContent = "Loading...";
+
+    if (games.length === 0) {
+        grid.innerHTML = '<div class="loading">Loading games...</div>';
+    }
+
+    try {
+        const url =
+            `${API_URL}?limit=${GAME_LIMIT}&offset=${offset}&order=q`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`API returned HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status !== "success" || !Array.isArray(result.data)) {
+            throw new Error("Unexpected API response.");
+        }
+
+        const newGames = result.data;
+
+        if (newGames.length === 0) {
+            finished = true;
+        } else {
+            const existingIds = new Set(games.map(game => game.id));
+
+            const uniqueGames = newGames.filter(game =>
+                game.id && !existingIds.has(game.id)
+            );
+
+            if (uniqueGames.length === 0) {
+                finished = true;
+            } else {
+                games.push(...uniqueGames);
+                offset += newGames.length;
+            }
+
+            if (newGames.length < GAME_LIMIT) {
+                finished = true;
+            }
+        }
+
+        updateCategories();
+        renderGames();
+
+        statusText.textContent =
+            `${games.length.toLocaleString()} games loaded`;
+
+        loadMoreButton.hidden = finished;
+
+    } catch (error) {
+        console.error("PlayHubo API error:", error);
+
+        if (games.length === 0) {
+            grid.innerHTML = `
+                <div class="empty">
+                    <h3>Could not load games</h3>
+                    <p style="margin-top:10px">
+                        ${escapeHTML(error.message)}
+                    </p>
+                    <p style="margin-top:10px">
+                        The API may be blocking requests from this website.
+                        Check the browser console for details.
+                    </p>
+                    <button class="load-more"
+                        onclick="loadGames()">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        statusText.textContent = "There was a problem loading the catalogue.";
+    }
+
+    loading = false;
+    loadMoreButton.disabled = false;
+    loadMoreButton.textContent = "Load More";
+}
+
+
+// ========================================
+// CATEGORIES
+// ========================================
+
+function updateCategories() {
+    const selected = categorySelect.value;
+
+    const categories = new Set();
+
+    games.forEach(game => {
+        if (Array.isArray(game.categories)) {
+            game.categories.forEach(category => {
+                if (category) categories.add(category);
+            });
+        } else if (game.category) {
+            categories.add(game.category);
+        }
+    });
+
+    categorySelect.innerHTML =
+        '<option value="all">All Categories</option>';
+
+    [...categories].sort().forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categorySelect.appendChild(option);
+    });
+
+    if ([...categorySelect.options].some(option => option.value === selected)) {
+        categorySelect.value = selected;
+    }
+}
+
+
+// ========================================
+// RENDER GAMES
+// ========================================
+
+function renderGames() {
+    const search = searchInput.value.toLowerCase().trim();
+    const category = categorySelect.value;
+
+    const filteredGames = games.filter(game => {
+        const title = (game.title || "").toLowerCase();
+        const description = (game.description || "").toLowerCase();
+
+        const matchesSearch =
+            title.includes(search) || description.includes(search);
+
+        const gameCategories = Array.isArray(game.categories)
+            ? game.categories
+            : [game.category || ""];
+
+        const matchesCategory =
+            category === "all" || gameCategories.includes(category);
+
+        return matchesSearch && matchesCategory;
+    });
+
+    grid.innerHTML = "";
+
+    if (filteredGames.length === 0) {
+        grid.innerHTML = `
+            <div class="empty">
+                No games found.
+            </div>
+        `;
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+
+    filteredGames.forEach(game => {
+        const card = document.createElement("div");
+        card.className = "game-card";
+
+        const image = document.createElement("img");
+        image.className = "game-thumbnail";
+        image.src = game.thumbnailUrl || game.thumbnailUrl100 || "";
+        image.alt = game.title || "Game";
+        image.loading = "lazy";
+
+        image.onerror = () => {
+            image.style.visibility = "hidden";
+        };
+
+        const title = document.createElement("div");
+        title.className = "game-title";
+        title.textContent = game.title || "Untitled Game";
+
+        const categoryLabel = document.createElement("div");
+        categoryLabel.className = "game-category";
+        categoryLabel.textContent = game.category || "Game";
+
+        card.appendChild(image);
+        card.appendChild(title);
+        card.appendChild(categoryLabel);
+
+        card.addEventListener("click", () => openGame(game));
+
+        fragment.appendChild(card);
+    });
+
+    grid.appendChild(fragment);
+}
+
+
+// ========================================
+// OPEN GAME
+// ========================================
+
+function openGame(game) {
+    if (!game.id) return;
+
+    currentGameUrl =
+        `https://play.playhubo.com/embed/${encodeURIComponent(game.id)}`;
+
+    document.getElementById("playerTitle").textContent =
+        game.title || "Game";
+
+    document.getElementById("gameFrame").src = currentGameUrl;
+
+    document.getElementById("playerOverlay").classList.add("active");
+
+    document.body.style.overflow = "hidden";
+}
+
+
+// ========================================
+// CLOSE GAME
+// ========================================
+
+function closeGame() {
+    document.getElementById("playerOverlay").classList.remove("active");
+
+    document.getElementById("gameFrame").src = "about:blank";
+
+    document.body.style.overflow = "";
+    currentGameUrl = "";
+}
+
+
+// ========================================
+// PLAYER BUTTONS
+// ========================================
+
+document.getElementById("closeButton").addEventListener("click", closeGame);
+
+document.getElementById("newTabButton").addEventListener("click", () => {
+    if (currentGameUrl) {
+        window.open(currentGameUrl, "_blank", "noopener");
+    }
+});
+
+document.getElementById("fullscreenButton").addEventListener("click", () => {
+    const frame = document.getElementById("gameFrame");
+
+    if (frame.requestFullscreen) {
+        frame.requestFullscreen();
+    }
+});
+
+document.getElementById("playerOverlay").addEventListener("click", event => {
+    if (event.target.id === "playerOverlay") {
+        closeGame();
+    }
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        closeGame();
+    }
+});
+
+
+// ========================================
+// SEARCH AND FILTERS
+// ========================================
+
+searchInput.addEventListener("input", renderGames);
+
+categorySelect.addEventListener("change", renderGames);
+
+loadMoreButton.addEventListener("click", loadGames);
+
+
+// ========================================
+// BASIC HTML ESCAPING
+// ========================================
+
+function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    })[character]);
+}
+
+
+// ========================================
+// START
+// ========================================
+
+loadGames();
+
+</script>
+
+</body>
+</html>
